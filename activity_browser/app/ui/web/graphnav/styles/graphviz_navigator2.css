@@ -47,8 +47,8 @@ svg {
 .canvas .minimap .frame .background {
   stroke: #111111;
   stroke-width: 4px;
-  fill-opacity: 0.1;
-  fill: #000000;
+  fill-opacity: 1;
+  fill: #FFFFFF;
   fill: url(#minimapGradient_qwpyza);
   filter: url(#minimapDropShadow_qwpyza);
   cursor: move;

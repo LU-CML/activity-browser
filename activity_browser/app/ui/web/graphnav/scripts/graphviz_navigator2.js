@@ -27,8 +27,8 @@ function windowSize() {
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    x = g.clientWidth || w.innerWidth || e.clientWidth;
+    y = g.clientHeight || w.innerHeight|| e.clientHeight;
     return [x,y];
 };
 
@@ -37,20 +37,18 @@ http://www.billdwhite.com/wordpress/2017/09/ */
 
 var svg = {};
 
+var width = windowSize.x,
+    height   = windowSize.y;
+
 d3.demo = {};
 
 
 /** CANVAS **/
 d3.demo.canvas = function() {
 
-    "use strict";
+    "use strict"
 
-
-
-    var width = windowSize()[0],
-        height   = windowSize()[1],
-        //height          = 500,
-        base            = null,
+    var base            = null,
         wrapperBorder   = 0,
         minimap         = null,
         minimapPadding  = 10,
@@ -65,8 +63,9 @@ d3.demo.canvas = function() {
 
         svg = selection.append("svg")
             .attr("class", "svg canvas")
-            .attr("width", svgWidth)
-            .attr("height", svgHeight)
+            //.attr("width", svgWidth)
+            //.attr("height", svgHeight)
+            .attr("viewBox", "0 0" + " " + svgWidth + " " + svgHeight)
             .attr("shape-rendering", "auto")
             .append("g")
 
@@ -162,7 +161,7 @@ d3.demo.canvas = function() {
             .attr("height", height);
 
         var zoom = d3.zoom()
-            .scaleExtent([0.5, 5]);
+            .scaleExtent([0.1, 5]);
 
         // updates the zoom boundaries based on the current size and scale
         var updateCanvasZoomExtents = function() {
@@ -205,6 +204,7 @@ d3.demo.canvas = function() {
         canvas.addItem = function() {
             canvas.reset();
             panCanvas.call(render, graph);
+            //svg.call(minimap); # TODO : statement to reset Minimap to only show new graph
             minimap.render();
         };
 
@@ -304,7 +304,7 @@ d3.demo.minimap = function() {
         base = selection;
 
         var zoom = d3.zoom()
-            .scaleExtent([0.5, 5]);
+            .scaleExtent([0.1, 5]);
 
         // updates the zoom boundaries based on the current size and scale
         var updateMinimapZoomExtents = function() {
@@ -446,7 +446,7 @@ d3.demo.minimap = function() {
 
 /** RUN SCRIPT **/
 
-var canvas = d3.demo.canvas();
+var canvas = d3.demo.canvas().width(1000).height(800);
 d3.select("#canvasqPWKOg").call(canvas);
 
 d3.select("#resetButtonqPWKOg").on("click", function() {
