@@ -27,18 +27,20 @@ function windowSize() {
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
-    x = g.clientWidth || w.innerWidth || e.clientWidth;
-    y = g.clientHeight || w.innerHeight|| e.clientHeight;
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     return [x,y];
 };
+
+var max_string_length = 20
 
 /* Adapted code from Bill White's Thumbnail Demo
 http://www.billdwhite.com/wordpress/2017/09/ */
 
 var svg = {};
 
-var width = windowSize.x,
-    height   = windowSize.y;
+var width = windowSize()[0];
+var height = windowSize()[1];
 
 d3.demo = {};
 
@@ -488,7 +490,7 @@ function update_graph(json_data) {
 	  data.nodes.forEach(function(n) {
 
 	    graph.setNode(n['id'], {
-	      label: chunkString(n['name'], 40),
+	      label: chunkString(n['name'], max_string_length) + '\n' + n['location'],
 	      product: n['product'],
 	      location: n['location'],
 	      id: n['id'],
@@ -501,7 +503,7 @@ function update_graph(json_data) {
 	  // edges --> graph
 	  data.edges.forEach(function(e) {
 	  	// document.writeln(e['source']);
-	    graph.setEdge(e['source_id'], e['target_id'], {label: chunkString(e['label'], 40)
+	    graph.setEdge(e['source_id'], e['target_id'], {label: chunkString(e['label'], max_string_length)
 	    });
 	  });
 
@@ -519,53 +521,32 @@ function update_graph(json_data) {
 	// Function called on click
 
 	function handleMouseClick(node){
-        //launch downstream exploration on shift+clicked node
-		if (window.event.shiftKey){
-            console.log ('shift')
+        // make dictionary containing the node key and how the user clicked on it
+        // see also mouse events: https://www.w3schools.com/jsref/obj_mouseevent.asp
+        click_dict = {
+            "database": graph.node(node).database,
+             "id": graph.node(node).id
+        }
+        click_dict["mouse"] = event.button;
+        click_dict["keyboard"] = {
+            "shift": event.shiftKey,
+            "alt": event.altKey,
+        }
+        console.log(click_dict)
 
-            new QWebChannel(qt.webChannelTransport, function (channel) {
-                window.bridge = channel.objects.bridge;
-                window.bridge.node_clicked_expand(
-                  graph.node(node).database + ";" + graph.node(node).id
-                );
-                window.bridge.graph_ready.connect(update_graph);
-            });
-
-
-        //launch reduction on alt+clicked node
-		} else if (window.event.altKey){
-            console.log ('alt')
-
-            new QWebChannel(qt.webChannelTransport, function (channel) {
-                window.bridge = channel.objects.bridge;
-                window.bridge.node_clicked_reduce(
-                  graph.node(node).database + ";" + graph.node(node).id
-                );
-                window.bridge.graph_ready.connect(update_graph);
-            });
-
-
-        //launch navigation from clicked node
-		} else  {
-            console.log ('no additional key')
-            new QWebChannel(qt.webChannelTransport, function (channel) {
-                window.bridge = channel.objects.bridge;
-                window.bridge.node_clicked(
-                  graph.node(node).database + ";" + graph.node(node).id
-                );
+        // pass click_dict (as json text) to python via bridge
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            window.bridge = channel.objects.bridge;
+            window.bridge.node_clicked(JSON.stringify(click_dict));
             window.bridge.graph_ready.connect(update_graph);
-            });
-	}
-
+        });
+    };
 };
-};
-
 
 // break strings into multiple lines after certain length if necessary
 function chunkString(str, length) {
     return str.match(new RegExp('.{1,' + length + '}', 'g')).join("\n");
 }
-
 
 new QWebChannel(qt.webChannelTransport, function (channel) {
     window.bridge = channel.objects.bridge;
